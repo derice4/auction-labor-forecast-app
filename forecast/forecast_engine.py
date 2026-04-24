@@ -204,3 +204,14 @@ def build_forecast_context(target_date: Optional[date] = None) -> dict:
         "recent_avg_variance_pct": round(recent_variance_pct, 1),
         "anomaly_days_last_month": anomaly_count,
     }
+def forecast_staff_for_volume(volume: int, is_sale_day: bool) -> dict:
+    breakdown = {}
+    for role in LABOR_STANDARDS:
+        minutes_needed = volume * LABOR_STANDARDS[role]
+        raw = minutes_needed / SHIFT_MINUTES
+        if role == "lane_support" and not is_sale_day:
+            breakdown[role] = 0
+        else:
+            breakdown[role] = max(1, -(-int(raw) // 1))
+    breakdown["total"] = sum(breakdown.values())
+    return breakdown
