@@ -14,6 +14,7 @@ SEED = 42
 random.seed(SEED)
 SHIFT_MINUTES = 480
 
+# Labor standards: minutes per unit per role
 LABOR_STANDARDS = {
     "check_in":    8,
     "detailing":   45,
@@ -21,14 +22,20 @@ LABOR_STANDARDS = {
     "title_admin":  6,
     "lane_support": 10,
 }
+
+# Seasonal multipliers by month (Jan=1 … Dec=12)
 SEASONAL = {
     1: 0.80,  2: 0.85,  3: 1.05,  4: 1.15,  5: 1.10,
     6: 1.00,  7: 0.90,  8: 0.95,  9: 1.10, 10: 1.15,
    11: 1.05, 12: 0.75,
 }
+# Day-of-week multipliers (0=Mon … 6=Sun)
 DOW = {0: 1.10, 1: 1.20, 2: 1.30, 3: 1.25, 4: 1.15, 5: 0.60, 6: 0.00}
+
+# Sale days: Tuesday & Wednesday are primary auction days
 SALE_DAYS = {1, 2}
 
+# ── Data Generation ───────────────────────────────────────────────────────────
 def generate_year(year: int = 2024):
     records = []
     start = date(year, 1, 1)
@@ -86,6 +93,8 @@ current += delta
 
 return records
 
+
+# ── Database Loading ──────────────────────────────────────────────────────────
 def load_to_sqlite(records, db_path: str):
     conn = sqlite3.connect(db_path)
     cur  = conn.cursor()
@@ -131,6 +140,7 @@ def load_to_sqlite(records, db_path: str):
     conn.close()
     print(f"✅  Loaded {len(records)} days into {db_path}")
 
+# ── Entry Point ───────────────────────────────────────────────────────────────
     if __name__ == "__main__":
     print("Generating 2024 auction data...")
     records = generate_year(2024)
