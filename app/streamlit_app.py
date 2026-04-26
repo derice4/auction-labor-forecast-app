@@ -74,7 +74,10 @@ if not os.path.exists(db_path):
     from data.generate_data import generate_year, load_to_sqlite
     records = generate_year(2024)
     load_to_sqlite(records, db_path)
-load_to_sqlite(records, db_path)
+if not os.path.exists(db_path):
+    from data.generate_data import generate_year, load_to_sqlite
+    records = generate_year(2024)
+    load_to_sqlite(records, db_path)
 
 try:
     week_df    = get_week_forecast(selected_date)
