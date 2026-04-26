@@ -68,6 +68,12 @@ st.title("🚗 Auto Auction Labor Forecasting")
 st.caption(f"Forecast week starting {selected_date.strftime('%B %d, %Y')}")
 
 # ── Load data ─────────────────────────────────────────────────────────────────
+import subprocess
+
+# Auto-generate database if it doesn't exist
+if not os.path.exists(os.path.join(os.path.dirname(__file__), '..', 'auction_data.db')):
+    subprocess.run(['python', 'data/generate_data.py'], check=True)
+
 try:
     week_df    = get_week_forecast(selected_date)
     wow_df     = get_wow_variance(selected_date, weeks=8)
