@@ -9,18 +9,19 @@ import random
 import os
 from datetime import date, timedelta
 
-# ── Config ───────────────────────────────────────────────────────────────────
+# ── Config ────────────────────────────────────────────────────────────────────
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "auction_data.db")
 SEED = 42
 random.seed(SEED)
+
 SHIFT_MINUTES = 480
 
 # Labor standards: minutes per unit per role
 LABOR_STANDARDS = {
-    "check_in":    8,
-    "detailing":   45,
-    "transport":   12,
-    "title_admin":  6,
+    "check_in":      8,
+    "detailing":    45,
+    "transport":    12,
+    "title_admin":   6,
     "lane_support": 10,
 }
 
@@ -30,50 +31,60 @@ SEASONAL = {
     6: 1.00,  7: 0.90,  8: 0.95,  9: 1.10, 10: 1.15,
    11: 1.05, 12: 0.75,
 }
+
 # Day-of-week multipliers (0=Mon … 6=Sun)
 DOW = {0: 1.10, 1: 1.20, 2: 1.30, 3: 1.25, 4: 1.15, 5: 0.60, 6: 0.00}
 
 # Sale days: Tuesday & Wednesday are primary auction days
 SALE_DAYS = {1, 2}
 
+
 # ── Data Generation ───────────────────────────────────────────────────────────
 def generate_year(year: int = 2024):
+    """Generate one year of daily auction operational records."""
     records = []
-    start = date(year, 1, 1)
-    end   = date(year, 12, 31)
-    delta = timedelta(days=1)
+    start   = date(year, 1, 1)
+    end     = date(year, 12, 31)
+    delta   = timedelta(days=1)
     current = start
 
-while current <= end:
+    while current <= end:
         dow = current.weekday()
+
+        # Skip Sundays
         if DOW[dow] == 0.0:
             current += delta
             continue
 
-base_volume = 180
-volume = int(
+        # Calculate daily volume
+        base_volume = 180
+        volume = int(
             base_volume
             * SEASONAL[current.month]
             * DOW[dow]
             * random.uniform(0.88, 1.12)
         )
-volume = max(volume, 10)
-is_sale_day = 1 if dow in SALE_DAYS else 0
+        volume = max(volume, 10)
 
-def heads(role):
-            minutes_needed = volume * LABOR_STANDARDS[role]
-            raw = minutes_needed / SHIFT_MINUTES
+        is_sale_day = 1 if dow in SALE_DAYS else 0
+
+        # Staffing calculation: ceiling division
+        def heads(role):
             if role == "lane_support" and not is_sale_day:
                 return 0
+            minutes_needed = volume * LABOR_STANDARDS[role]
+            raw = minutes_needed / SHIFT_MINUTES
             return max(1, -(-int(raw) // 1))
-planned = {role: heads(role) for role in LABOR_STANDARDS}
-total_planned = sum(planned.values())
 
-callout_factor = random.uniform(0.90, 1.05)
-total_actual = max(1, int(total_planned * callout_factor))
-actual_volume = int(volume * random.uniform(0.95, 1.05))
+        planned       = {role: heads(role) for role in LABOR_STANDARDS}
+        total_planned = sum(planned.values())
 
-records.append({
+        # Simulate actual turnout
+        callout_factor = random.uniform(0.90, 1.05)
+        total_actual   = max(1, int(total_planned * callout_factor))
+        actual_volume  = int(volume * random.uniform(0.95, 1.05))
+
+        records.append({
             "date":                current.isoformat(),
             "day_of_week":         current.strftime("%A"),
             "month":               current.month,
@@ -90,13 +101,15 @@ records.append({
             "variance_staff":      total_actual - total_planned,
         })
 
-current += delta
+        current += delta
 
-return records
+    return records
 
 
 # ── Database Loading ──────────────────────────────────────────────────────────
 def load_to_sqlite(records, db_path: str):
+    """Load generated records into a SQLite database."""
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
     conn = sqlite3.connect(db_path)
     cur  = conn.cursor()
 
@@ -140,6 +153,7 @@ def load_to_sqlite(records, db_path: str):
     conn.commit()
     conn.close()
     print(f"✅  Loaded {len(records)} days into {db_path}")
+
 
 # ── Entry Point ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
