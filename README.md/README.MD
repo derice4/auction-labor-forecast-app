@@ -1,5 +1,8 @@
 # 🚗 Auto Auction Labor Forecasting
 
+## 🚀 Live Demo
+[View the live dashboard](https://auction-labor-forecast.streamlit.app/)
+
 A end-to-end labor forecasting pipeline built with Python, SQL, and the Claude AI API — simulating real-world workforce planning for an auto auction facility.
 
 Built as a portfolio project to demonstrate skills in data engineering, analytics, and AI integration for operations-focused roles.
