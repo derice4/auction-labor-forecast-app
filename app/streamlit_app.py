@@ -71,11 +71,20 @@ st.caption(f"Forecast week starting {selected_date.strftime('%B %d, %Y')}")
 # Auto-generate database if it doesn't exist
 db_path = os.path.join(os.path.dirname(__file__), '..', 'auction_data.db')
 if not os.path.exists(db_path):
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
     from data.generate_data import generate_year, load_to_sqlite
     records = generate_year(2024)
     load_to_sqlite(records, db_path)
+load_to_sqlite(records, db_path)
 
+try:
+    week_df    = get_week_forecast(selected_date)
+    wow_df     = get_wow_variance(selected_date, weeks=8)
+    monthly_df = get_monthly_trend()
+    anomaly_df = get_anomalies()
+    ctx        = build_forecast_context(selected_date)
+except FileNotFoundError:
+    st.error("Database not found. Run `python data/generate_data.py` first.")
+    st.stop()
 # ── KPI row ───────────────────────────────────────────────────────────────────
 col1, col2, col3, col4 = st.columns(4)
 
