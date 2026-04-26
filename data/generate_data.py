@@ -9,6 +9,7 @@ import random
 import os
 from datetime import date, timedelta
 
+# ── Config ───────────────────────────────────────────────────────────────────
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "auction_data.db")
 SEED = 42
 random.seed(SEED)
@@ -141,7 +142,7 @@ def load_to_sqlite(records, db_path: str):
     print(f"✅  Loaded {len(records)} days into {db_path}")
 
 # ── Entry Point ───────────────────────────────────────────────────────────────
-    if __name__ == "__main__":
+if __name__ == "__main__":
     print("Generating 2024 auction data...")
     records = generate_year(2024)
     load_to_sqlite(records, DB_PATH)
